@@ -3,6 +3,6 @@ function px = my_calculate_px(rating,x,ppdf)
     for r = 1:length(rating)
         [~,idx(r)] = min(abs(rating(r) - x));
     end
-    ppdf = ppdf/length(x);
+    %ppdf = ppdf/length(x);
     px = ppdf(idx);
 end

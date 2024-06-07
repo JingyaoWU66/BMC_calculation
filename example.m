@@ -1,11 +1,17 @@
 % This is an example of calculating the BMCs of the entire dataset and
 % evaluate it with the boxplot in Figure 10 in the paper
+%gt_ratings = arousal_dev;
 
+x = [0:0.001:1]; %resultion of estimating the PDF
+alpha = [0.01:0.01:1]; %resolution of the alphas
+resolution = 200;
 for u = 1:9 %u: utterance index
     for i = 1:length(pred_alp{u,1}) %i: frame index within one utterance
      if pred_alp{u,1}(i) > 1 & pred_bet{u,1}(i) > 1 %check the beta distribution is bell shape
        
-        [all_pdf{u,1}{i,1},BMC{u,1}(i)] = BMC_calculation_function(pred_alp{u,1}(i),pred_bet{u,1}(i),proir,gt_ratings{u,1}(i));
+        %[all_pdf{u,1}{i,1},BMC{u,1}(i)] = BMC_calculation_function(pred_alp{u,1}(i),pred_bet{u,1}(i),proir,arousal_dev{u}(i,2:7)*0.4975+0.5);
+        [BMC{u,1}(i)] = BMC_calculation_function2(pred_alp{u,1}(i),pred_bet{u,1}(i),proir,arousal_dev{u}(i,2:7)*0.4975+0.5,x,alpha,resolution);
+
      else
         BMC{u,1}(i) = -100;
      end
@@ -21,12 +27,12 @@ BMC_total = cell2mat(BMC'); %Cat all BMCs of the entire dataset
 Bx = linspace(0.02,2,100);%resolution when you estimating the distribution of BMC
 gamma = 0.75; % quartiles of the boxplot you are interested in
 my_gamma_boxplot(BMC_total,gamma,Bx);
-%% You can plot your inferred and predicted distributions 
+%% You can plot your inferred and predicted distribution at a single frame
 % % see how they are differred as a comparion using the codes below
 % and then plot the corresponding BMF using the codes in the next section
 % This is what I did in Figure 5,6,7 of the paper
-u = 1
-t = 1
+u = 1 %utterance 1
+t = 1 %time frame 1
 figure
 x = [0:0.001:1];
 y = betapdf(x,pred_alp{u,1}(t,1),pred_bet{u,1}(t,1));
@@ -34,11 +40,11 @@ y = betapdf(x,pred_alp{u,1}(t,1),pred_bet{u,1}(t,1));
 %y_gt_few_dr{dr,1}= betapdf(x,MAP_BETA_t_few_dr{dr,1}{u,1}(t,1),MAP_BETA_t_few_dr{dr,1}{u,1}(t,2));
 plot(x,y,'linewidth',2)
 hold on
-plot(x,y_gt,'LineWidth',2)
-hold on
+%plot(x,y_gt,'LineWidth',2)
+%hold on
 plot(x,all_pdf{u,1}{t,1},'linewidth',2)
 hold on
-scatter(gt_ratings{u}(t,:),zeros(1,6),'filled') %I have 6 ratings per frame
+scatter(arousal_dev{u}(t,2:7)*0.4975+0.5,zeros(1,6),'filled') %I have 6 ratings per frame
 title("utt = " + u + " frame = " + t)
 legend('Predicted PDF','Inferred ALl posteroir PDF')
 
@@ -51,3 +57,5 @@ plot([0:0.01:1],[0:0.01:1],'LineWidth',1)
 title('Belief Mismatch Function (BMF)')
 xlabel('Belief of predicted distribution with different alpha')
 ylabel('Belief of inferred distribution with different alpha')
+
+%save('BMC_sample_data.mat','pred_alp','pred_bet','proir','arousal_dev');
